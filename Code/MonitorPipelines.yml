@@ -1,0 +1,37 @@
+trigger: none
+
+schedules:
+  - cron: "0 5 * * *" # every day at 5am
+    displayName: Pipeline Monitoring
+    always: true
+    branches:
+      include:
+        - PRD
+
+variables:
+  - group: Name-of-Variable-Group-with-SendgridKey
+
+vmImage: "ubuntu-latest"
+
+jobs:
+  - job: "Monitoring"
+    steps:
+      - checkout: self
+      - task: AzureCLI@2
+        env:
+          SendgridKey: $(SendgridKey)
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+        inputs:
+          azureSubscription: "Name-of-Connection"
+          scriptType: "pscore"
+          scriptLocation: "scriptPath"
+          scriptPath: "./Code/Monitor-Pipelines.ps1"
+          arguments: '
+            -ToAddress @("khalfwerk@unica.nl", "ucs@unica.nl")
+            -ProjectNames  @("","""")
+            -IgnoreProjectNames  @(""","")
+            -DevOpsOrganisation "Fill in with your DevOps Organisation
+            -Days  1
+            -FromAddress "Fill in with your FromAddress"
+            -FromName "Fill in with your FromName"	
+            '
